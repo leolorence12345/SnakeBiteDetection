@@ -326,7 +326,7 @@ if not st.session_state.identity_filled:
         col1, col2 = st.columns(2)
         with col1:
             name = st.text_input("Full Name")
-            dob = st.date_input("Date of Birth")
+            dob = st.text_input("Age")
             sex = st.selectbox("Sex", ["Male", "Female", "Other"], index=None)
         with col2:
             phone = st.text_input("Phone Number", max_chars=10)
