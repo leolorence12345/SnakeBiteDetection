@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/snake-bite-app/static/css/main.831cb0c8.css",
+    "main.js": "/snake-bite-app/static/js/main.bbccd3e5.js",
+    "index.html": "/snake-bite-app/index.html",
+    "main.831cb0c8.css.map": "/snake-bite-app/static/css/main.831cb0c8.css.map",
+    "main.bbccd3e5.js.map": "/snake-bite-app/static/js/main.bbccd3e5.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.831cb0c8.css",
+    "static/js/main.bbccd3e5.js"
+  ]
+}
