@@ -1,7 +1,7 @@
 // API Configuration
 // For Google Apps Script: Use your Web App URL from script.google.com
 // For local backend: Use http://localhost:5000
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://script.google.com/macros/s/AKfycbw47F5FlgP9yj8XgxL9KgGINuJoOH_ouXgJ-EcN_cOB_qc-nlbKIP370h7JohbK3NSSfA/exec';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://script.google.com/macros/s/AKfycbzOhmziv96FvJymfgZCKQdyiBC7es4SRn_RzGrZMlC4UB4wZZd3Kjc8-BcyWdlsKHyNpA/exec';
 
 // Check if using Google Apps Script (URL contains script.google.com)
 const isGoogleAppsScript = API_BASE_URL.includes('script.google.com');

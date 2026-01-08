@@ -15,11 +15,12 @@ export async function uploadImageToImgur(imageFile) {
       headers: {
         'Authorization': `Client-ID ${IMGUR_CLIENT_ID}`
       },
-      body: formData
+      body: formData,
+      mode: 'cors'
     });
 
     if (!response.ok) {
-      throw new Error('Imgur upload failed');
+      throw new Error(`Imgur upload failed with status ${response.status}`);
     }
 
     const data = await response.json();
@@ -31,7 +32,8 @@ export async function uploadImageToImgur(imageFile) {
     }
   } catch (error) {
     console.error('Imgur upload error:', error);
-    // Fallback: return data URL
+    // Fallback: return data URL (works for all cases)
+    console.warn('Using fallback data URL for image instead of Imgur');
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result);

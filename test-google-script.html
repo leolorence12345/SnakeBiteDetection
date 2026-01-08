@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Google Apps Script</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #4caf50;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin: 20px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        button {
+            background: #4caf50;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .log {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #4caf50;
+            background: white;
+        }
+        .log-error {
+            border-left-color: #f44336;
+        }
+        .log-success {
+            border-left-color: #4caf50;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .status.success {
+            background: #dff0d8;
+            color: #3c763d;
+            border: 1px solid #d6e9c6;
+        }
+        .status.error {
+            background: #f2dede;
+            color: #a94442;
+            border: 1px solid #ebccd1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐍 Test Google Apps Script Connection</h1>
+
+        <div class="form-group">
+            <label for="scriptUrl">Your Google Apps Script Web App URL:</label>
+            <input
+                type="text"
+                id="scriptUrl"
+                value="https://script.google.com/macros/s/AKfycbzOhmziv96FvJymfgZCKQdyiBC7es4SRn_RzGrZMlC4UB4wZZd3Kjc8-BcyWdlsKHyNpA/exec"
+                placeholder="https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec"
+            />
+        </div>
+
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button onclick="testHealthCheck()">Test Health Check (GET)</button>
+            <button onclick="testFormSubmission()">Test Form Submission (POST)</button>
+            <button onclick="clearLog()">Clear Log</button>
+        </div>
+
+        <div id="status"></div>
+
+        <div class="log" id="log">
+            <div style="color: #999;">Console logs will appear here...</div>
+        </div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type === 'error' ? 'log-error' : type === 'success' ? 'log-success' : ''}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+
+            // Remove placeholder if exists
+            if (logDiv.children.length === 1 && logDiv.children[0].style.color === 'rgb(153, 153, 153)') {
+                logDiv.innerHTML = '';
+            }
+
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function showStatus(message, isSuccess) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = `status ${isSuccess ? 'success' : 'error'}`;
+            statusDiv.textContent = message;
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '<div style="color: #999;">Console logs will appear here...</div>';
+            document.getElementById('status').innerHTML = '';
+        }
+
+        async function testHealthCheck() {
+            const url = document.getElementById('scriptUrl').value;
+            log('Starting health check test...');
+            log(`Testing URL: ${url}`);
+
+            try {
+                log('Sending GET request...');
+                const response = await fetch(url);
+                log(`Response status: ${response.status} ${response.statusText}`);
+
+                const text = await response.text();
+                log(`Response body: ${text}`);
+
+                const data = JSON.parse(text);
+                if (data.status === 'ok') {
+                    log('✓ Health check PASSED', 'success');
+                    showStatus('✓ Google Apps Script is running correctly!', true);
+                } else {
+                    log('✗ Unexpected response', 'error');
+                    showStatus('✗ Unexpected response from script', false);
+                }
+            } catch (error) {
+                log(`✗ Error: ${error.message}`, 'error');
+                showStatus(`✗ Error: ${error.message}`, false);
+            }
+        }
+
+        function testFormSubmission() {
+            const url = document.getElementById('scriptUrl').value;
+            log('Starting form submission test...');
+            log(`Testing URL: ${url}`);
+
+            const testData = {
+                Name: "Test Patient",
+                Age: "30",
+                Sex: "Male",
+                Phone: "1234567890",
+                Address: "Test Address",
+                District: "KANNUR",
+                Time: "Evening",
+                Season: "Summer",
+                Place: "Garden",
+                "Local symptoms": "Swelling, Pain",
+                "Systematic symptoms": "Nausea",
+                Prediction: "Monocled Cobra",
+                "Image URL": "https://example.com/test.jpg",
+                Notes: "Test submission from HTML",
+                "Clinical Snake": "Spectacled Cobra",
+                "Clinical Notes": "Confirmed by doctor"
+            };
+
+            log('Test data prepared:', 'info');
+            log(JSON.stringify(testData, null, 2));
+
+            // Create iframe and form for submission
+            const iframe = document.createElement('iframe');
+            iframe.name = 'test_submit_frame';
+            iframe.style.display = 'none';
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = url;
+            form.target = 'test_submit_frame';
+            form.style.display = 'none';
+
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'data';
+            input.value = JSON.stringify(testData);
+            form.appendChild(input);
+
+            document.body.appendChild(iframe);
+            document.body.appendChild(form);
+
+            // Listen for response
+            let messageReceived = false;
+            window.addEventListener('message', function handler(event) {
+                log(`Message received from: ${event.origin}`);
+                log(`Message data: ${JSON.stringify(event.data)}`);
+
+                if (event.origin.includes('script.google.com') || event.data) {
+                    messageReceived = true;
+                    window.removeEventListener('message', handler);
+
+                    if (event.data && event.data.success) {
+                        log('✓ Form submission SUCCESSFUL', 'success');
+                        showStatus('✓ Data was saved to Google Sheets!', true);
+                    } else if (event.data && event.data.error) {
+                        log(`✗ Error from script: ${event.data.error}`, 'error');
+                        showStatus(`✗ Error: ${event.data.error}`, false);
+                    } else {
+                        log('Response received but status unclear', 'error');
+                        showStatus('Response received. Check your Google Sheet.', false);
+                    }
+
+                    // Cleanup
+                    setTimeout(() => {
+                        document.body.removeChild(form);
+                        document.body.removeChild(iframe);
+                    }, 1000);
+                }
+            });
+
+            // Timeout handler
+            setTimeout(() => {
+                if (!messageReceived) {
+                    log('⚠ No response received after 5 seconds (timeout)', 'error');
+                    showStatus('⚠ Timeout: No response. Check Google Sheet manually.', false);
+
+                    // Cleanup
+                    document.body.removeChild(form);
+                    document.body.removeChild(iframe);
+                }
+            }, 5000);
+
+            log('Submitting form via iframe...');
+            form.submit();
+            log('Form submitted. Waiting for response...');
+        }
+    </script>
+</body>
+</html>

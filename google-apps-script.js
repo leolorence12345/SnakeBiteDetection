@@ -10,8 +10,8 @@
  * 6. Update your React app to use this URL
  */
 
-// Replace with your Google Sheet ID (from the URL)
-const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID_HERE';
+// Your Google Sheet ID (extracted from your secrets.toml)
+const SPREADSHEET_ID = '1TLPK3NwAjDUioanyTFEiQoxTAAPXXvhcbFU5dq8LkX0';
 const SHEET_NAME = 'Snake';
 
 /**
@@ -19,8 +19,25 @@ const SHEET_NAME = 'Snake';
  */
 function doPost(e) {
   try {
-    const data = JSON.parse(e.postData.contents);
-    
+    Logger.log('=== doPost called ===');
+    Logger.log('e.parameter: ' + JSON.stringify(e.parameter));
+    Logger.log('e.postData: ' + JSON.stringify(e.postData));
+
+    let data;
+
+    // Check if data is sent as form parameter or JSON body
+    if (e.parameter && e.parameter.data) {
+      // Form submission (from iframe)
+      Logger.log('Using form parameter data');
+      data = JSON.parse(e.parameter.data);
+    } else {
+      // Direct JSON POST
+      Logger.log('Using postData contents');
+      data = JSON.parse(e.postData.contents);
+    }
+
+    Logger.log('Parsed data: ' + JSON.stringify(data));
+
     // Open the spreadsheet
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     let sheet = ss.getSheetByName(SHEET_NAME);
@@ -62,21 +79,34 @@ function doPost(e) {
     
     // Append the row
     sheet.appendRow(row);
-    
-    return ContentService
-      .createTextOutput(JSON.stringify({
-        success: true,
-        message: 'Record saved successfully'
-      }))
-      .setMimeType(ContentService.MimeType.JSON);
+    Logger.log('Row appended successfully');
+
+    // Return HTML with postMessage for iframe communication
+    const html = `
+      <html>
+        <body>
+          <script>
+            window.parent.postMessage({success: true, message: 'Record saved successfully'}, '*');
+          </script>
+        </body>
+      </html>
+    `;
+
+    return HtmlService.createHtmlOutput(html);
       
   } catch (error) {
-    return ContentService
-      .createTextOutput(JSON.stringify({
-        success: false,
-        error: error.toString()
-      }))
-      .setMimeType(ContentService.MimeType.JSON);
+    // Return HTML with error message for iframe communication
+    const errorHtml = `
+      <html>
+        <body>
+          <script>
+            window.parent.postMessage({success: false, error: '${error.toString()}'}, '*');
+          </script>
+        </body>
+      </html>
+    `;
+
+    return HtmlService.createHtmlOutput(errorHtml);
   }
 }
 

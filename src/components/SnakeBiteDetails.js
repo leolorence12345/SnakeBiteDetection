@@ -43,9 +43,10 @@ function SnakeBiteDetails({ identityInfo, onSubmit }) {
         async (position) => {
           const { latitude, longitude } = position.coords;
           try {
-            const response = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`
-            );
+            // Use CORS proxy to bypass CORS restrictions
+            const corsProxy = 'https://cors-anywhere.herokuapp.com/';
+            const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`;
+            const response = await fetch(corsProxy + nominatimUrl);
             const data = await response.json();
             const address = data.address || {};
             const district = (address.state_district || '').toUpperCase();
@@ -59,6 +60,7 @@ function SnakeBiteDetails({ identityInfo, onSubmit }) {
             }));
           } catch (error) {
             console.error('Geocoding error:', error);
+            // Silently fail - user can manually enter location
           }
         },
         (error) => {
