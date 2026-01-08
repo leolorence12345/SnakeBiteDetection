@@ -89,30 +89,14 @@ function doPost(e) {
     // Append the row
     sheet.appendRow(row);
     
-    return ContentService
-      .createTextOutput(JSON.stringify({
-        success: true,
-        message: 'Record saved successfully'
-      }))
-      .setMimeType(ContentService.MimeType.JSON)
-      .setHeaders({
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
-      });
+    // Return HTML for iframe (avoids CORS issues)
+    return HtmlService.createHtmlOutput('<html><body><script>window.parent.postMessage({success: true, message: "Record saved successfully"}, "*");</script></body></html>')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
       
   } catch (error) {
-    return ContentService
-      .createTextOutput(JSON.stringify({
-        success: false,
-        error: error.toString()
-      }))
-      .setMimeType(ContentService.MimeType.JSON)
-      .setHeaders({
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
-      });
+    // Return HTML with error message
+    return HtmlService.createHtmlOutput('<html><body><script>window.parent.postMessage({success: false, error: "' + error.toString().replace(/"/g, '\\"') + '"}, "*");</script></body></html>')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
 }
 

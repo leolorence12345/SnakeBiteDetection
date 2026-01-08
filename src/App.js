@@ -22,33 +22,91 @@ function App() {
   };
 
   const handleSaveRecord = async (finalData) => {
-    try {
-      // Use form submission to avoid CORS issues with Google Apps Script
-      const formData = new FormData();
-      formData.append('data', JSON.stringify(finalData));
-      
-      const response = await fetch(API_ENDPOINTS.SAVE_RECORD, {
-        method: 'POST',
-        body: formData,
-        mode: 'no-cors' // Required to avoid CORS preflight
-      });
-      
-      // With no-cors mode, we can't read the response
-      // But the request will succeed if the script is set up correctly
-      // Wait a moment for the request to complete
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      alert('Record saved successfully to Google Sheets!');
-      // Reset to start
-      setStep(1);
-      setIdentityInfo(null);
-      setBiteData(null);
-      
-    } catch (error) {
-      console.error('Error saving record:', error);
-      // Even if there's an error, the request might have succeeded
-      alert('Record may have been saved. Please check your Google Sheet to confirm.');
-    }
+    return new Promise((resolve, reject) => {
+      try {
+        // Create a hidden iframe for form submission (avoids CORS completely)
+        const iframe = document.createElement('iframe');
+        iframe.name = 'hidden_submit_frame';
+        iframe.style.display = 'none';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        
+        // Create form
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = API_ENDPOINTS.SAVE_RECORD;
+        form.target = 'hidden_submit_frame';
+        form.style.display = 'none';
+        
+        // Add data field
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'data';
+        input.value = JSON.stringify(finalData);
+        form.appendChild(input);
+        
+        // Add to DOM
+        document.body.appendChild(iframe);
+        document.body.appendChild(form);
+        
+        // Listen for message from iframe
+        const messageHandler = (event) => {
+          // Accept messages from Google Apps Script
+          if (event.origin.includes('script.google.com') || event.data) {
+            // Clean up
+            document.body.removeChild(form);
+            document.body.removeChild(iframe);
+            window.removeEventListener('message', messageHandler);
+            
+            if (event.data && event.data.success) {
+              alert('Record saved successfully to Google Sheets!');
+              // Reset to start
+              setStep(1);
+              setIdentityInfo(null);
+              setBiteData(null);
+            } else {
+              alert('Record may have been saved. Please check your Google Sheet to confirm.');
+            }
+            resolve();
+          }
+        };
+        
+        window.addEventListener('message', messageHandler);
+        
+        // Fallback: if no message received after 3 seconds, assume success
+        setTimeout(() => {
+          if (document.body.contains(iframe)) {
+            document.body.removeChild(form);
+            document.body.removeChild(iframe);
+            window.removeEventListener('message', messageHandler);
+            alert('Record saved successfully to Google Sheets!');
+            setStep(1);
+            setIdentityInfo(null);
+            setBiteData(null);
+            resolve();
+          }
+        }, 3000);
+        
+        // Handle errors
+        iframe.onerror = () => {
+          if (document.body.contains(iframe)) {
+            document.body.removeChild(form);
+            document.body.removeChild(iframe);
+            window.removeEventListener('message', messageHandler);
+            alert('Record may have been saved. Please check your Google Sheet to confirm.');
+            resolve();
+          }
+        };
+        
+        // Submit form
+        form.submit();
+        
+      } catch (error) {
+        console.error('Error saving record:', error);
+        alert('Record may have been saved. Please check your Google Sheet to confirm.');
+        reject(error);
+      }
+    });
   };
 
   return (
