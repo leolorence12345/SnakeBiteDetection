@@ -2,7 +2,7 @@
   "name": "snake-bite-management-portal",
   "version": "1.0.0",
   "description": "Snake Bite Management Portal - React Version",
-  "homepage": "/snake-bite-app",
+  "homepage": "/SnakeBiteDetection",
   "private": true,
   "dependencies": {
     "react": "^18.2.0",
