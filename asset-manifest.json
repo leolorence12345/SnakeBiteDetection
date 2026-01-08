@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/SnakeBiteDetection/static/css/main.74a8e822.css",
-    "main.js": "/SnakeBiteDetection/static/js/main.6ca37b43.js",
+    "main.js": "/SnakeBiteDetection/static/js/main.d7e573be.js",
     "index.html": "/SnakeBiteDetection/index.html",
     "main.74a8e822.css.map": "/SnakeBiteDetection/static/css/main.74a8e822.css.map",
-    "main.6ca37b43.js.map": "/SnakeBiteDetection/static/js/main.6ca37b43.js.map"
+    "main.d7e573be.js.map": "/SnakeBiteDetection/static/js/main.d7e573be.js.map"
   },
   "entrypoints": [
     "static/css/main.74a8e822.css",
-    "static/js/main.6ca37b43.js"
+    "static/js/main.d7e573be.js"
   ]
 }
