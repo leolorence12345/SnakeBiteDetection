@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { LOCATION_OPTIONS, PLACE, LOCAL_SYMPTOMS, SYSTEMATIC_SYMPTOMS } from '../metadata';
 import { predictSnakeSpecies, mapHourToTimeCategory, mapMonthToSeason } from '../utils/prediction';
 import { API_ENDPOINTS } from '../config';
+import { uploadImageToImgur, imageToDataURL } from '../utils/imageUpload';
 
 function SnakeBiteDetails({ identityInfo, onSubmit }) {
   const [showCamera, setShowCamera] = useState(false);
@@ -266,35 +267,20 @@ function SnakeBiteDetails({ identityInfo, onSubmit }) {
       const imageFile = capturedImage || uploadedImage;
       let imageUrl = '';
       if (imageFile) {
-        // Upload image to backend (which uploads to Google Drive)
+        // Try to upload to Imgur (free, no backend needed)
         try {
-          const uploadFormData = new FormData();
-          uploadFormData.append('image', imageFile);
-          
-          const uploadResponse = await fetch(API_ENDPOINTS.UPLOAD_IMAGE, {
-            method: 'POST',
-            body: uploadFormData,
-          });
-          
-          if (!uploadResponse.ok) {
-            const errorText = await uploadResponse.text();
-            console.error('Upload response error:', uploadResponse.status, errorText);
-            throw new Error(`Upload failed: ${uploadResponse.status} - ${errorText}`);
-          }
-          
-          const uploadResult = await uploadResponse.json();
-          if (uploadResult.success && uploadResult.imageUrl) {
-            imageUrl = uploadResult.imageUrl;
-            console.log('Image uploaded successfully:', imageUrl);
-          } else {
-            console.error('Image upload failed:', uploadResult.error || uploadResult);
-            throw new Error(uploadResult.error || 'Upload failed');
-          }
+          imageUrl = await uploadImageToImgur(imageFile);
+          console.log('Image uploaded successfully:', imageUrl);
         } catch (error) {
           console.error('Error uploading image:', error);
-          alert(`Warning: Could not upload image to Google Drive. Using local preview. Error: ${error.message}`);
-          // Fallback to data URL if backend is not available
-          imageUrl = URL.createObjectURL(imageFile);
+          // Fallback: use data URL (base64 encoded image)
+          try {
+            imageUrl = await imageToDataURL(imageFile);
+            console.log('Using data URL as fallback');
+          } catch (dataUrlError) {
+            console.error('Error creating data URL:', dataUrlError);
+            alert('Warning: Could not process image. Continuing without image.');
+          }
         }
       }
       

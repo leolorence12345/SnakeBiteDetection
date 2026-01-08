@@ -23,12 +23,14 @@ function App() {
 
   const handleSaveRecord = async (finalData) => {
     try {
+      // Google Apps Script requires redirect: 'follow' for POST requests
       const response = await fetch(API_ENDPOINTS.SAVE_RECORD, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(finalData),
+        redirect: 'follow' // Important for Google Apps Script
       });
 
       const result = await response.json();
@@ -40,7 +42,7 @@ function App() {
         setIdentityInfo(null);
         setBiteData(null);
       } else {
-        alert(`Error saving record: ${result.error}`);
+        alert(`Error saving record: ${result.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error saving record:', error);

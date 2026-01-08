@@ -252,7 +252,9 @@ st.markdown("""
     div.stButton > button:hover, .upload-btn label:hover { background-color: #66bb6a; color: black; }
     .stTextInput, .stTextArea, .stSelectbox, .stMultiSelect { background-color: #184c18 !important; color: #ffffff !important; border-radius: 10px; border: 1px solid #4caf50; }
     img { border: 4px solid #4caf50; border-radius: 10px; }
-    .stCheckbox { background-color: white !important; color: #ffffff !important; }
+    .stCheckbox { background-color: transparent !important; }
+    .stCheckbox label { color: #d4f0c0 !important; font-weight: normal !important; }
+    .stCheckbox input[type="checkbox"] { width: 20px !important; height: 20px !important; cursor: pointer; }
     .upload-btn input[type="file"] { display: none; }
     .stFileUploader label { display: none; }
     </style>
@@ -335,7 +337,7 @@ if not st.session_state.identity_filled:
     if identity_submit:
         st.session_state.identity_info = {
             "Name": name,
-            "Date of Birth": str(dob),
+            "Age": str(dob),
             "Sex": sex,
             "Phone": phone,
             "Address": address
@@ -407,35 +409,55 @@ elif not st.session_state.submitted:
     district = st.text_input("District", value=st.session_state.final_district)
     pincode = st.text_input("Pincode", value=st.session_state.final_pincode)
 
-    # Dynamic Others
-    place_options = list(PLACE.keys()) + ["Others"]
-    selected_place = st.selectbox("Where did the bite happen", place_options, index=None, key="place_selection")
-    custom_place = st.text_input("Please specify the place of bite", key="custom_place") if selected_place == "Others" else ""
-    final_place = custom_place if selected_place == "Others" else selected_place
-
-    local_options = list(LOCAL_SYMPTOMS.keys()) + ["Others"]
-    selected_local = st.multiselect("Local symptoms", local_options, key="local_symptoms")
-    custom_local = st.text_input("Specify other local symptoms", key="custom_local_symptoms") if "Others" in selected_local else ""
-    final_local_symptoms = [s for s in selected_local if s != "Others"]
-    if custom_local:
-        final_local_symptoms.append(custom_local)
-
-    sys_options = list(SYSTEMATIC_SYMPTOMS.keys()) + ["Others"]
-    selected_sys = st.multiselect("Systematic symptoms", sys_options, key="systemic_symptoms")
-    custom_sys = st.text_input("Specify other systemic symptoms", key="custom_sys_symptoms") if "Others" in selected_sys else ""
-    final_sys_symptoms = [s for s in selected_sys if s != "Others"]
-    if custom_sys:
-        final_sys_symptoms.append(custom_sys)
-
     with st.form("snakebite_form"):
+        # Dynamic Others
+        place_options = list(PLACE.keys()) + ["Others"]
+        selected_place = st.selectbox("Where did the bite happen", place_options, index=None, key="place_selection")
+        custom_place = st.text_input("Please specify the place of bite", key="custom_place") if selected_place == "Others" else ""
+        final_place = custom_place if selected_place == "Others" else selected_place
+
+        st.markdown("#### Local symptoms")
+        local_options = list(LOCAL_SYMPTOMS.keys()) + ["Others"]
+        selected_local = []
+        
+        # Display checkboxes in columns for better visibility
+        num_cols = 2
+        cols = st.columns(num_cols)
+        for idx, option in enumerate(local_options):
+            col_idx = idx % num_cols
+            with cols[col_idx]:
+                if st.checkbox(option, key=f"local_symptom_{option}"):
+                    selected_local.append(option)
+        
+        custom_local = st.text_input("Specify other local symptoms", key="custom_local_symptoms") if "Others" in selected_local else ""
+        final_local_symptoms = [s for s in selected_local if s != "Others"]
+        if custom_local:
+            final_local_symptoms.append(custom_local)
+
+        st.markdown("#### Systematic symptoms")
+        sys_options = list(SYSTEMATIC_SYMPTOMS.keys()) + ["Others"]
+        selected_sys = []
+        
+        # Display checkboxes in columns for better visibility
+        cols2 = st.columns(num_cols)
+        for idx, option in enumerate(sys_options):
+            col_idx = idx % num_cols
+            with cols2[col_idx]:
+                if st.checkbox(option, key=f"sys_symptom_{option}"):
+                    selected_sys.append(option)
+        
+        custom_sys = st.text_input("Specify other systemic symptoms", key="custom_sys_symptoms") if "Others" in selected_sys else ""
+        final_sys_symptoms = [s for s in selected_sys if s != "Others"]
+        if custom_sys:
+            final_sys_symptoms.append(custom_sys)
         st.markdown("### 🕓 Bite Time")
         col1, col2, col3 = st.columns(3)
         with col1:
-            hour_12 = st.selectbox("Hour", list(range(1, 13)), index=11)
+            hour_12 = st.selectbox("Hour", list(range(1, 13)), index=11, key="hour_12")
         with col2:
-            minute = st.selectbox("Minute", list(range(0, 60)), format_func=lambda x: f"{x:02}", index=0)
+            minute = st.selectbox("Minute", list(range(0, 60)), format_func=lambda x: f"{x:02}", index=0, key="minute")
         with col3:
-            meridian = st.selectbox("AM/PM", ["AM", "PM"], index=0)
+            meridian = st.selectbox("AM/PM", ["AM", "PM"], index=0, key="meridian")
 
         hour_24 = hour_12 % 12 + (12 if meridian == "PM" else 0)
         time_key = map_hour_to_time_category(hour_24)
@@ -444,17 +466,59 @@ elif not st.session_state.submitted:
         month_name = st.selectbox("Month", [
             "January", "February", "March", "April", "May", "June",
             "July", "August", "September", "October", "November", "December"
-        ])
+        ], key="month_name")
         month_num = [
             "January", "February", "March", "April", "May", "June",
             "July", "August", "September", "October", "November", "December"
         ].index(month_name) + 1
         season_key = map_month_to_season(month_num)
 
-        notes = st.text_area("Additional Notes")
+        notes = st.text_area("Additional Notes", key="notes")
         submit = st.form_submit_button("Submit Snake Bite Details")
 
     if submit:
+        # Access form values from session state
+        selected_place = st.session_state.get("place_selection", None)
+        custom_place = st.session_state.get("custom_place", "")
+        
+        # Read checkbox values for local symptoms
+        local_options = list(LOCAL_SYMPTOMS.keys()) + ["Others"]
+        selected_local = []
+        for option in local_options:
+            if st.session_state.get(f"local_symptom_{option}", False):
+                selected_local.append(option)
+        custom_local = st.session_state.get("custom_local_symptoms", "")
+        
+        # Read checkbox values for systemic symptoms
+        sys_options = list(SYSTEMATIC_SYMPTOMS.keys()) + ["Others"]
+        selected_sys = []
+        for option in sys_options:
+            if st.session_state.get(f"sys_symptom_{option}", False):
+                selected_sys.append(option)
+        custom_sys = st.session_state.get("custom_sys_symptoms", "")
+        
+        hour_12 = st.session_state.get("hour_12", 12)
+        meridian = st.session_state.get("meridian", "AM")
+        month_name = st.session_state.get("month_name", "January")
+        notes = st.session_state.get("notes", "")
+        
+        # Compute final values from form inputs
+        final_place = custom_place if selected_place == "Others" else selected_place
+        final_local_symptoms = [s for s in selected_local if s != "Others"]
+        if "Others" in selected_local and custom_local:
+            final_local_symptoms.append(custom_local)
+        final_sys_symptoms = [s for s in selected_sys if s != "Others"]
+        if "Others" in selected_sys and custom_sys:
+            final_sys_symptoms.append(custom_sys)
+        
+        hour_24 = hour_12 % 12 + (12 if meridian == "PM" else 0)
+        time_key = map_hour_to_time_category(hour_24)
+        month_num = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ].index(month_name) + 1
+        season_key = map_month_to_season(month_num)
+        
         weights = [0.8, 0.4, 0.4, 0.5, 0.6, 0.8]
         vectors = []
         if district: vectors.append(LOCATION_OPTIONS.get(district.upper(), [0, 0, 0, 0]))
