@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/snake-bite-app/static/css/main.831cb0c8.css",
-    "main.js": "/snake-bite-app/static/js/main.bbccd3e5.js",
-    "index.html": "/snake-bite-app/index.html",
-    "main.831cb0c8.css.map": "/snake-bite-app/static/css/main.831cb0c8.css.map",
-    "main.bbccd3e5.js.map": "/snake-bite-app/static/js/main.bbccd3e5.js.map"
+    "main.css": "/SnakeBiteDetection/static/css/main.831cb0c8.css",
+    "main.js": "/SnakeBiteDetection/static/js/main.78739606.js",
+    "index.html": "/SnakeBiteDetection/index.html",
+    "main.831cb0c8.css.map": "/SnakeBiteDetection/static/css/main.831cb0c8.css.map",
+    "main.78739606.js.map": "/SnakeBiteDetection/static/js/main.78739606.js.map"
   },
   "entrypoints": [
     "static/css/main.831cb0c8.css",
-    "static/js/main.bbccd3e5.js"
+    "static/js/main.78739606.js"
   ]
 }
